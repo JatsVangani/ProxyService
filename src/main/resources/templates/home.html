@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Select Services</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f5f5f5;
+        }
+        .service-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .service-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .service-item:hover {
+            background-color: #f9f9f9;
+        }
+        .generate-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 1rem;
+        }
+        .generate-btn:hover {
+            background-color: #45a049;
+        }
+        .service-checkbox {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="service-container">
+        <h1>Select Services</h1>
+        <p>Choose the services you want to access and generate a token</p>
+        
+        <form action="/generate-token" method="post">
+            <div th:each="service : ${internalServices}">
+                <div class="service-item">
+                    <input type="checkbox" 
+                           th:id="${service.name}" 
+                           th:name="selectedServices" 
+                           th:value="${service.name}"
+                           class="service-checkbox">
+                    <label th:for="${service.name}">
+                        <strong th:text="${service.name}">Service Name</strong>
+                        <p th:text="${service.description}">Service Description</p>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="generate-btn">Generate Token</button>
+        </form>
+    </div>
+</body>
+</html> 

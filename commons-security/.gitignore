@@ -1,0 +1,22 @@
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+.settings/*
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+.checkstyle
+logs/
+bin/
+/.apt_generated/
