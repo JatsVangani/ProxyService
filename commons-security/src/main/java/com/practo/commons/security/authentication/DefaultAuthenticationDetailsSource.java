@@ -5,7 +5,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Optional;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
