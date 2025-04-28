@@ -12,13 +12,10 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000 # 24 hours in milliseconds
 
-internal-services:
-  - name: Service1
-    url: http://localhost:8081
-    description: First internal service
-  - name: Service2
-    url: http://localhost:8082
-    description: Second internal service
-  - name: Service3
-    url: http://localhost:8083
-    description: Third internal service 
+services:
+  hosts:
+    titan: "https://titan-latest.practo.com"
+    book: "https://book-latest.practo.com"
+  keys:
+    titan: "xxxxxxx"
+    book: "xxxxx" 

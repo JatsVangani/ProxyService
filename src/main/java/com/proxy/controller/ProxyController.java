@@ -1,66 +1,53 @@
 package com.proxy.controller;
 
-import com.proxy.util.JwtUtil;
+import com.proxy.config.ServiceConfig;
+import com.proxy.service.ExternalService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/proxy")
 public class ProxyController {
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private ExternalService externalService;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private ServiceConfig serviceConfig;
 
-    @Value("${internal-services}")
-    private List<Map<String, String>> internalServices;
-
-    @GetMapping("/{serviceName}/**")
-    public ResponseEntity<?> proxyRequest(
-            @PathVariable String serviceName,
-            @RequestHeader("Authorization") String token,
-            @RequestParam Map<String, String> params) {
-
-        // Validate JWT token
-        if (!jwtUtil.validateToken(token.replace("Bearer ", ""))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    @RequestMapping(value = "/titan/v1/{endpoint}", method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+    public ResponseEntity<String> proxyTitanRequest(
+            @PathVariable String endpoint,
+            @RequestParam(required = false) Map<String, String> queryParams,
+            @RequestBody(required = false) Object body,
+            HttpMethod method) {
+        String fullEndpoint = serviceConfig.getHosts().get("titan") + endpoint;
+        if (queryParams != null && !queryParams.isEmpty()) {
+            fullEndpoint += "?" + buildQueryString(queryParams);
         }
-
-        // Get list of authorized services from token
-        List<String> authorizedServices = jwtUtil.extractServices(token.replace("Bearer ", ""));
-        
-        // Check if service is authorized
-        if (!authorizedServices.contains(serviceName)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // Find service URL
-        String serviceUrl = internalServices.stream()
-                .filter(service -> service.get("name").equals(serviceName))
-                .findFirst()
-                .map(service -> service.get("url"))
-                .orElseThrow(() -> new RuntimeException("Service not found"));
-
-        // Forward request to internal service
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    serviceUrl + "/" + serviceName,
-                    HttpMethod.GET,
-                    new HttpEntity<>(new HttpHeaders()),
-                    String.class,
-                    params
-            );
-            return response;
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return externalService.callTitanService(fullEndpoint, method, body);
     }
-} 
+
+    @RequestMapping(value = "/book/v1/{endpoint}", method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
+    public ResponseEntity<String> proxyBookRequest(
+            @PathVariable String endpoint,
+            @RequestParam(required = false) Map<String, String> queryParams,
+            @RequestBody(required = false) Object body,
+            HttpMethod method) {
+        String fullEndpoint = serviceConfig.getHosts().get("book") + endpoint;
+        if (queryParams != null && !queryParams.isEmpty()) {
+            fullEndpoint += "?" + buildQueryString(queryParams);
+        }
+        return externalService.callBookService(fullEndpoint, method, body);
+    }
+
+    private String buildQueryString(Map<String, String> queryParams) {
+        return queryParams.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .reduce((param1, param2) -> param1 + "&" + param2)
+                .orElse("");
+    }
+}
